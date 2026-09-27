@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="StudyPlanner AI — organisez vos matières, devoirs, examens et révisions dans le navigateur.">
+  <title>StudyPlanner AI — Organisez vos études intelligemment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#contenu-principal">Aller au contenu principal</a>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <button type="button" class="nav-toggle" id="btn-menu" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="navigation">
+          ☰
+        </button>
+        <div class="logo" aria-hidden="true">SP</div>
+        <div>
+          <h1>StudyPlanner AI</h1>
+          <p class="tagline">Organisez vos études intelligemment</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" class="btn btn-on-dark" id="btn-reset">
+          Réinitialiser les données
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <div class="nav-scrim" id="nav-scrim" hidden></div>
+      <aside class="sidebar" id="navigation">
+        <nav aria-label="Sections de l'application">
+          <ul>
+            <li><button type="button" class="nav-btn is-active" data-section="dashboard" aria-current="page">Tableau de bord</button></li>
+            <li><button type="button" class="nav-btn" data-section="matieres">Matières</button></li>
+            <li><button type="button" class="nav-btn" data-section="taches">Devoirs et tâches</button></li>
+            <li><button type="button" class="nav-btn" data-section="examens">Examens</button></li>
+            <li><button type="button" class="nav-btn" data-section="planning">Mon planning</button></li>
+          </ul>
+        </nav>
+        <p class="sidebar-note">Données enregistrées localement dans votre navigateur (localStorage). Aucun serveur n’est requis.</p>
+      </aside>
+
+      <main id="contenu-principal">
+        <section id="section-dashboard" class="panel is-visible" aria-labelledby="titre-dashboard">
+          <h2 id="titre-dashboard">Tableau de bord</h2>
+
+          <div class="stats-grid" aria-live="polite">
+            <article class="stat-card">
+              <span class="stat-label">Matières</span>
+              <strong class="stat-value" id="stat-matieres">0</strong>
+              <span class="stat-hint">inscrites</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Tâches à faire</span>
+              <strong class="stat-value" id="stat-todo">0</strong>
+              <span class="stat-hint">en cours</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Tâches terminées</span>
+              <strong class="stat-value" id="stat-done">0</strong>
+              <span class="stat-hint">accomplies</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Examens à venir</span>
+              <strong class="stat-value" id="stat-examens">0</strong>
+              <span class="stat-hint">planifiés</span>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="card" aria-labelledby="titre-focus">
+              <h3 id="titre-focus">Focus du jour</h3>
+              <p class="card-intro">Jusqu’à trois priorités calculées selon les dates, les urgences et les examens proches.</p>
+              <ol id="liste-focus" class="focus-list"></ol>
+            </article>
+
+            <article class="card" aria-labelledby="titre-smart">
+              <h3 id="titre-smart">Smart Planner</h3>
+              <p class="card-intro">Recommandations générées localement à partir de vos dates, priorités et examens (règles JavaScript, sans API externe).</p>
+              <ul id="liste-smart" class="smart-list"></ul>
+            </article>
+          </div>
+
+          <article class="card" aria-labelledby="titre-progression">
+            <h3 id="titre-progression">Ma progression</h3>
+            <div class="progress-meta">
+              <p id="progress-chiffres"></p>
+              <p id="progress-message" class="progress-message"></p>
+            </div>
+            <div class="progress-block">
+              <span class="progress-caption">Progression globale</span>
+              <div class="progress-track" role="progressbar" id="barre-progression" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progression des tâches">
+                <div class="progress-fill" id="barre-progression-fill"></div>
+              </div>
+              <strong id="progress-pct">0 %</strong>
+            </div>
+          </article>
+        </section>
+
+        <section id="section-matieres" class="panel" hidden aria-labelledby="titre-matieres">
+          <h2 id="titre-matieres">Matières</h2>
+          <div class="split">
+            <article class="card">
+              <h3 id="titre-form-matiere">Ajouter une matière</h3>
+              <form id="form-matiere" class="form">
+                <input type="hidden" id="matiere-id" value="">
+                <div class="field">
+                  <label for="matiere-nom">Nom de la matière</label>
+                  <input type="text" id="matiere-nom" name="nom" required maxlength="80" placeholder="Ex. Algorithmique" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="matiere-enseignant">Enseignant (facultatif)</label>
+                  <input type="text" id="matiere-enseignant" name="enseignant" maxlength="80" placeholder="Ex. Dr. Martin" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="matiere-couleur">Couleur de reconnaissance</label>
+                  <input type="color" id="matiere-couleur" name="couleur" value="#4f46e5">
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary" id="btn-save-matiere">Enregistrer la matière</button>
+                  <button type="button" class="btn btn-ghost" id="btn-cancel-matiere" hidden>Annuler</button>
+                </div>
+              </form>
+            </article>
+            <article class="card">
+              <h3>Liste des matières</h3>
+              <div id="liste-matieres" class="item-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="section-taches" class="panel" hidden aria-labelledby="titre-taches">
+          <h2 id="titre-taches">Devoirs et tâches</h2>
+          <div class="split">
+            <article class="card">
+              <h3 id="titre-form-tache">Ajouter une tâche</h3>
+              <form id="form-tache" class="form">
+                <input type="hidden" id="tache-id" value="">
+                <div class="field">
+                  <label for="tache-titre">Titre</label>
+                  <input type="text" id="tache-titre" name="titre" required maxlength="120" placeholder="Ex. Exercices chapitre 3" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="tache-matiere">Matière</label>
+                  <select id="tache-matiere" name="matiere" required></select>
+                </div>
+                <div class="field">
+                  <label for="tache-type">Type</label>
+                  <select id="tache-type" name="type" required>
+                    <option value="revision">Révision</option>
+                    <option value="devoir">Devoir</option>
+                    <option value="projet">Projet</option>
+                    <option value="exercice">Exercice</option>
+                    <option value="presentation">Présentation</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="tache-date">Date limite</label>
+                  <input type="date" id="tache-date" name="date" required>
+                </div>
+                <div class="field">
+                  <label for="tache-priorite">Priorité</label>
+                  <select id="tache-priorite" name="priorite" required>
+                    <option value="faible">Faible</option>
+                    <option value="moyenne" selected>Moyenne</option>
+                    <option value="elevee">Élevée</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="tache-description">Description (facultatif)</label>
+                  <textarea id="tache-description" name="description" rows="3" maxlength="400" placeholder="Détails, chapitres, consignes…"></textarea>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary" id="btn-save-tache">Ajouter la tâche</button>
+                  <button type="button" class="btn btn-ghost" id="btn-cancel-tache" hidden>Annuler</button>
+                </div>
+              </form>
+            </article>
+
+            <article class="card">
+              <h3>Liste des tâches</h3>
+              <div class="toolbar">
+                <div class="field field-search">
+                  <label for="recherche-taches">Rechercher une tâche</label>
+                  <input type="search" id="recherche-taches" placeholder="Titre ou description…">
+                </div>
+                <div class="field">
+                  <label for="filtre-matiere">Matière</label>
+                  <select id="filtre-matiere">
+                    <option value="toutes">Toutes les matières</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="filtre-priorite">Priorité</label>
+                  <select id="filtre-priorite">
+                    <option value="toutes">Toutes les priorités</option>
+                    <option value="faible">Faible</option>
+                    <option value="moyenne">Moyenne</option>
+                    <option value="elevee">Élevée</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="filtre-statut">Statut</label>
+                  <select id="filtre-statut">
+                    <option value="toutes">Toutes les tâches</option>
+                    <option value="a-faire">À faire</option>
+                    <option value="terminees">Terminées</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="tri-taches">Tri</label>
+                  <select id="tri-taches">
+                    <option value="date-proche">Date la plus proche</option>
+                    <option value="date-loin">Date la plus éloignée</option>
+                    <option value="priorite">Priorité</option>
+                    <option value="matiere">Matière</option>
+                  </select>
+                </div>
+              </div>
+              <div id="liste-taches" class="item-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="section-examens" class="panel" hidden aria-labelledby="titre-examens">
+          <h2 id="titre-examens">Examens</h2>
+          <div class="split">
+            <article class="card">
+              <h3 id="titre-form-examen">Ajouter un examen</h3>
+              <form id="form-examen" class="form">
+                <input type="hidden" id="examen-id" value="">
+                <div class="field">
+                  <label for="examen-nom">Nom de l’examen</label>
+                  <input type="text" id="examen-nom" name="nom" required maxlength="120" placeholder="Ex. Examen Base de données" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="examen-matiere">Matière</label>
+                  <select id="examen-matiere" name="matiere" required></select>
+                </div>
+                <div class="field">
+                  <label for="examen-date">Date</label>
+                  <input type="date" id="examen-date" name="date" required>
+                </div>
+                <div class="field">
+                  <label for="examen-heure">Heure (facultatif)</label>
+                  <input type="time" id="examen-heure" name="heure">
+                </div>
+                <div class="field">
+                  <label for="examen-salle">Salle (facultatif)</label>
+                  <input type="text" id="examen-salle" name="salle" maxlength="60" placeholder="Ex. Amphi A" autocomplete="off">
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary" id="btn-save-examen">Enregistrer l’examen</button>
+                  <button type="button" class="btn btn-ghost" id="btn-cancel-examen" hidden>Annuler</button>
+                </div>
+              </form>
+            </article>
+            <article class="card">
+              <h3>Examens à venir et passés</h3>
+              <div id="liste-examens" class="item-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="section-planning" class="panel" hidden aria-labelledby="titre-planning">
+          <h2 id="titre-planning">Mon planning</h2>
+          <article class="card">
+            <p class="card-intro">Tâches en cours et examens, classés par date (les plus proches en premier). Les éléments d’hier restent visibles pour le suivi immédiat.</p>
+            <div id="timeline-planning" class="timeline"></div>
+          </article>
+        </section>
+
+        <footer class="app-footer">
+          <p>StudyPlanner AI — application universitaire sans serveur. Toutes les données restent sur cet appareil.</p>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titre" aria-describedby="modal-texte" id="modal">
+      <h3 id="modal-titre">Confirmation</h3>
+      <p id="modal-texte"></p>
+      <div class="form-actions">
+        <button type="button" class="btn btn-danger" id="modal-ok">Confirmer</button>
+        <button type="button" class="btn btn-ghost" id="modal-cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
